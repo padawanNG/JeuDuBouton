@@ -209,10 +209,10 @@
 
       function bot() {
         var rndm_time = Math.floor(Math.random() * (6 - 4 + 1) + 4);
-  	    var randomChance = Math.random();
-  	    var color;
-  	    if(randomChance < 0.9) {
-    	    color = "green";
+        var randomChance = Math.random();
+        var color;
+        if(randomChance < 0.9) {
+          color = "green";
           counter++;
           document.getElementById("counter").innerHTML = "Compteur : " + counter;
           if (counter > maxCounter) {
@@ -224,13 +224,12 @@
           counter = 0;
           document.getElementById("counter").innerHTML = "Compteur : " + counter;
         }
-  	    addMessage(color);
-  	    setTimeout(bot, (rndm_time + 30/(online-1)) * 3000);
+        addMessage(color);
+        setTimeout(bot, (rndm_time + 30/(online-1)) * 1000);
       }
-    
-   
-      setInterval(bot, (Math.floor(Math.random() * (6 - 4 + 1) + 4) + 30/(online-3)) * 1000)
 
+      // call the bot function once to start the process
+      bot();
 
       // Obtenir référence à la liste des messages
       var messageList = document.getElementById("messages");
