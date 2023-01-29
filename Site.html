@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>L'expérience sociale du bouton</title>
+    <link rel="icon" href="C:\Users\marc-antoinegregoire\Downloads\image.ico" type="image/x-icon">
+    <style>
+      /* Styles de mise en forme */
+      body {
+        background-color: #f0f0f0;
+        color: #000000;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .button-container{
+        display: flex;
+        justify-content: center;
+      }
+      .counter {
+        font-style: italic;
+        font-size: 1.2em;
+        text-align: center;
+        transition: all 2s ease-in-out;
+      }
+      #green-button{
+        color: green;
+        border-radius: 15px;
+        cursor: pointer;
+      }
+      #red-button{
+        color: red;
+        border-radius: 15px;
+        cursor: pointer;
+      }
+      h1{
+        font-size: 2em;
+        text-align: center;
+        transition: all 2s ease-in-out;
+      }
+      button {
+        width: 100px;
+        height: 50px;
+        font-size: 20px;
+        margin: 20px;
+        cursor: pointer;
+      }
+      #cooldown-counter{
+        text-align: center;
+        font-size: 2em;
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        transition: all 2s ease-in-out;
+      }
+      #dark-mode-button{
+        position: absolute;
+        bottom: -2px;
+        left: 10px;
+        cursor: pointer;
+        border-radius: 6px;
+        border-width: 1px;
+      }
+      #green-counter{
+        position: absolute;
+        bottom: 10px;
+        right: 35px;
+      }
+      #red-counter{
+        position: absolute;
+        bottom: 40px;
+        right: 35px;
+      }
+      /* Styles pour le mode sombre */
+      .dark-mode {
+        background-color: #000000;
+        color: #f0f0f0;
+      }
+      .dark-mode #green-button {
+        color: green;
+      }
+      .dark-mode #red-button {
+        color: #ff0000;
+      }
+      #chat-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform: translateY(40%);
+      }
+      #chat ul li {
+          color: darkgreen; 
+          transition: all 1s ease-in-out;
+      }
+      #messages {
+          /* Styles existants */
+          background-color: #1B1E24;
+      }
+      #help-button {
+          position: absolute;
+          right: 5px;
+          top: 0.1%;
+          cursor: pointer;
+          width: 32px;
+          height: 32px;
+          border-radius: 32px;
+          border-color: black;
+          background-color: #f0f0f0;
+          color: black;
+          font-weight: 500 ;
+          margin-left: 15px;
+          border-width: 1.5px;
+          transition: all 2s ease-in-out;
+      }
+      .dark-mode #help-button {
+          position: absolute;
+	        right: 5px;
+          top: 0.1%;
+          cursor: pointer;
+          width: 32px;
+          height: 32px;
+          border-radius: 32px;
+          border-color: white;
+        background-color: black;
+          color: white;
+          font-weight: 500 ;
+          cursor: pointer;
+          margin-left: 15px;
+          border-width: 1.5px;
+        } 
+      
+      #help-text-container {
+    	 position: absolute;
+    	 top: 40px; /* ou la hauteur du bouton d'aide */
+    	 left: 85;
+   	   right: 0;
+  	   margin-right: 5px;
+       margin-top: 5px;
+	     text-align: center;
+   	   line-height: 5px;
+       transition: all 2s ease-in-out;
+      }
+      
+      .online {
+          position: absolute;
+          top: 15px;
+	        left: 5px;
+          font-weight: bold;
+          transition: all 2s ease-in-out;
+      }	
+
+
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>L'expérience sociale du bouton</h1>
+      <div class="button-container">
+        <button id="green-button" onclick="incrementCounter()">Vert</button>
+        <button id="red-button" onclick="resetCounter()">Rouge</button>
+      </div> 	      
+      <div class="counter" id="counter"></div>
+      <div class="counter" id="max-counter"></div>
+      <button id="help-button" onclick="showHelp()">?</button>
+      <div class="counter" id="green-counter"></div>
+      <div class="counter" id="red-counter"></div>
+      <div id="cooldown-counter"></div>
+      <button id="dark-mode-button" onclick="toggleDarkMode()">Mode sombre</button>
+    </div>
+    <div class="online" id="online-value" ></div>
+    <div id="help-text-container" style="display:none;">
+      <p><i> Si tu appuies sur le bouton vert, le compteur augmente de 1</i></p>
+      <p><i> Si tu appuies sur le bouton rouge, le compteur redescends a 0</i></p>
+    </div>
+ 
+     
+    <div id="chat-container" style="display: flex; justify-content: center; align-items: center;">
+      <div id="chat" style="overflow-y:scroll; width:400px; height:100px; border:2.5px solid grey;background-color: #1B1E24;">
+        <ul id="messages"></ul>
+      </div>
+    </div>
+
+
+
+    <script>
+      // Variables pour le compteur
+      let counter = Math.floor(Math.random() * (12 - 6 + 1) + 6);
+      let maxCounter = Math.floor(Math.random() * (18 - counter + 1) + counter);
+      let greenCounter = 0;
+      let redCounter = 0;
+      let cooldownTime = 0;
+      let cooldownInterval;
+      let cooldownTimeRed = 0;
+      let cooldownIntervalRed;
+      let darkMode = false;
+      let darkModeButton = document.getElementById("dark-mode-button");
+      const chat = document.getElementById("messages");
+
+      let onlineValue = document.getElementById("online-value");
+      var online = Math.floor(Math.random() * (12 - 5 + 1) + 5);
+      onlineValue.innerHTML = "Online: " + online;
+
+      document.getElementById("counter").innerHTML = "Compteur : " + counter;
+      document.getElementById("max-counter").innerHTML = "Valeur maximale : " + maxCounter;
+
+      function bot() {
+        var rndm_time = Math.floor(Math.random() * (6 - 4 + 1) + 4);
+  	    var randomChance = Math.random();
+  	    var color;
+  	    if(randomChance < 0.9) {
+    	    color = "green";
+          counter++;
+          document.getElementById("counter").innerHTML = "Compteur : " + counter;
+          if (counter > maxCounter) {
+            maxCounter = counter;
+            document.getElementById("max-counter").innerHTML = "Valeur maximale : " + maxCounter;
+          }
+        } else {
+          color = "red";
+          counter = 0;
+          document.getElementById("counter").innerHTML = "Compteur : " + counter;
+        }
+  	    addMessage(color);
+  	    setTimeout(bot, (rndm_time + 30/(online-1)) * 3000);
+      }
+    
+   
+      setInterval(bot, (Math.floor(Math.random() * (6 - 4 + 1) + 4) + 30/(online-3)) * 1000)
+
+
+      // Obtenir référence à la liste des messages
+      var messageList = document.getElementById("messages");
+      var messages = [];
+      // Boucle pour générer des messages de chat
+      for (var i = 0; i < counter; i++) {
+        var date = new Date(Date.now() - (Math.random() * 3600000));
+        // Créer un nouveau message de chat
+        var message = {
+        date: date,
+        content: "{"+ date.toLocaleTimeString() + "}" + ": green button was pressed"
+        };
+
+        messages.push(message);
+      }
+
+      // Tri des messages par ordre chronologique
+      messages.sort(function(a, b) {
+        return b.date - a.date;
+      });
+
+      // Ajout des messages triés à la liste
+      for (var i = 0; i < messages.length; i++) {
+        var message = document.createElement("li");
+        message.innerHTML = messages[i].content;
+        if (i >= messages.length - 5) {
+         message.classList.add("green");
+        } else {
+         message.classList.add("red");
+        }
+        messageList.appendChild(message);
+      }
+
+
+      
+      function addMessage(color) {
+        var date = new Date();
+    	  var hour = date.getHours();
+   	    var minutes = date.getMinutes();
+  	    var seconds = date.getSeconds();
+   	    var message = document.createElement("li");
+   	 message.innerHTML = `{${hour}:${minutes}:${seconds}}: ${color} button was pressed`;
+    	 if (color == "red"){
+   	 message.style.color = "#B82010";
+          } else {
+              message.style.color = color;
+          }
+   	 let messages = document.getElementById("messages");
+  	 messages.insertBefore(message, messages.firstChild);
+     }
+
+      function Message2bienvenue() {
+     	  var date = new Date();
+     	  var hour = date.getHours();
+     	  var minutes = date.getMinutes();
+    	  var seconds = date.getSeconds();
+     	  var message = document.createElement("li");
+          var num = Math.floor(Math.random() * (99 - 12 + 1)) + 12;
+	      message.style.color = "#496587";
+	      message.innerHTML = '{' + hour + ':' + minutes + ':' + seconds + '}' + ': guest_0' + num + ' just connected';
+   	    let messages = document.getElementById("messages");
+         messages.insertBefore(message, messages.firstChild);         
+      }
+
+     Message2bienvenue() 
+
+
+      // Fonction pour incrémenter le compteur
+      function incrementCounter() {
+        if (cooldownTime <= 0) {
+          counter++;
+          if (counter > maxCounter) {
+            maxCounter = counter;
+          }
+          greenCounter++;
+          document.getElementById("counter").innerHTML = "Compteur : " + counter;
+          document.getElementById("max-counter").innerHTML = "Valeur maximale : " + maxCounter;
+          document.getElementById("green-counter").innerHTML = "Vert : " + greenCounter;
+          cooldownTime = 30;
+          startCooldownCounter();
+          document.getElementById("green-button").disabled = true;
+          document.getElementById("red-button").disabled = true;
+          setTimeout(() => {
+            document.getElementById("green-button").disabled = false;
+            document.getElementById("red-button").disabled = false;
+            cooldownTime = 0;
+          }, 30000); // 30 secondes en ms       
+        addMessage("green");
+        }
+      }
+
+      // Fonction pour lancer le compteur de temps de recharge
+      function startCooldownCounter() {
+        cooldownInterval = setInterval(() => {
+          cooldownTime--;
+          document.getElementById("cooldown-counter").innerHTML = "Cooldown : " + cooldownTime + " secondes restantes";
+          if (cooldownTime <= 0) {
+            clearInterval(cooldownInterval);
+	   document.getElementById("cooldown-counter").innerHTML = "";
+          }
+        }, 1000); // 1 seconde en ms
+      }
+
+      // Fonction pour réinitialiser le compteur
+      function resetCounter() {
+        if (cooldownTimeRed <= 0) {
+          counter = 0;
+          redCounter++;
+          document.getElementById("counter").innerHTML = "Compteur : " + counter;
+          document.getElementById("red-counter").innerHTML = "Rouge : " + redCounter;
+          addMessage("red");
+          cooldownTimeRed = 15;
+          startCooldownCounterRed();
+          document.getElementById("green-button").disabled = true;
+          document.getElementById("red-button").disabled = true;
+          setTimeout(() => {
+            document.getElementById("green-button").disabled = false;
+            document.getElementById("red-button").disabled = false;
+            cooldownTimeRed = 0;
+          }, 15000); // 15 secondes en ms
+        }
+      }
+
+      // Fonction pour lancer le compteur de temps de recharge rouge
+      function startCooldownCounterRed() {
+        cooldownIntervalRed = setInterval(() => {
+          cooldownTimeRed--;
+          document.getElementById("cooldown-counter").innerHTML = "Cooldown : " + cooldownTimeRed + " secondes restantes";
+          if (cooldownTimeRed <= 0) {
+            clearInterval(cooldownIntervalRed);
+	   document.getElementById("cooldown-counter").innerHTML = "";
+          }
+        }, 1000); // 1 seconde en ms
+      }
+
+      // Fonction pour activer/désactiver le mode sombre
+      function toggleDarkMode() {
+          if (darkModeButton.innerText === "Mode sombre") {
+              darkMode = true;
+              document.body.classList.add("dark-mode");
+              darkModeButton.innerText = "Mode clair";
+          } else {
+              darkMode = false;
+              document.body.classList.remove("dark-mode");
+              darkModeButton.innerText = "Mode sombre";
+          }
+      }
+
+      function showHelp() {
+  	 var helpText = document.getElementById("help-text-container");
+          if(helpText.style.display === "none") {
+            helpText.style.display = "block";
+            setTimeout(function() {
+              document.getElementById("help-text-container").style.display = "none";
+            }, 7500);
+          } else {
+	   document.getElementById("help-text-container").style.display = "none";
+          } 
+      }
+  
+
+    </script>
+  </body>
+</html>
